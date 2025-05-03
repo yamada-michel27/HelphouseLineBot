@@ -1,0 +1,11 @@
+[project]
+name = "linebot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.115.12",
+    "line-bot-sdk>=3.17.1",
+    "python-dotenv>=1.1.0",
+]
