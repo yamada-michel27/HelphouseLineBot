@@ -51,6 +51,7 @@ def handle_message(event: MessageEvent):
     cmd = event.message.text.strip()
 
     # ./actions ディレクトリにあるアクションをインポート
+    reply = None
     for _, module_name, _ in pkgutil.iter_modules(actions.__path__):
         module = importlib.import_module(f"actions.{module_name}")
         if hasattr(module, "match") and hasattr(module, "action"):
