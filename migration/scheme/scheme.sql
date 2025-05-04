@@ -1,4 +1,4 @@
-CREATE TASBLE users (
+CREATE TABLE users (
     id VARCHAR(100) PRIMARY KEY,
 )
 
