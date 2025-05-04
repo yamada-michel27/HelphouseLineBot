@@ -1,7 +1,7 @@
-
 import os
 from dotenv import load_dotenv
 from sqlmodel import SQLModel, create_engine
+import app.models
 
 load_dotenv()
 
