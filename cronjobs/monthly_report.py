@@ -12,7 +12,7 @@ from main import configuration
 
 def run():
     # 明日の日付を作って、月が変わっていれば今日が末日
-    if os.getenv("DEBUG", "false").lower() == "true":
+    if os.getenv("DEBUG", "false").lower() != "true":
         today = date.today()
         if (today + timedelta(days=1)).month == today.month:
             return
