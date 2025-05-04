@@ -11,4 +11,4 @@ wheels/
 .env
 .vscode
 migration/*
-!scheme
+!scheme.sql
