@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from linebot.v3.messaging import ApiClient
+from linebot.v3.messaging import ApiClient, MessagingApi
 from linebot.v3.webhooks import MessageEvent
 from sqlmodel import Session, select, func
 from utils.db import engine
@@ -36,9 +36,22 @@ def action(event: MessageEvent, api_client: ApiClient, message: str) -> str:
     if not results:
         return "今月はまだ誰もゴミを出していません。"
 
-    # ランキングメッセージ
-    lines = ["🏆🏆🏆 今月のゴミ出しランキング 🏆🏆🏆🏆"]
+    # LINEのMessaging APIクライアントを初期化
+    messaging_api = MessagingApi(api_client)
+
+    # ユーザーIDから表示名を取得してマッピング
+    display_names = {}
+    for user_id, _ in results:
+        try:
+            profile = messaging_api.get_group_member_profile(group_id, user_id)
+            display_names[user_id] = profile.display_name
+        except Exception:
+            display_names[user_id] = "(名前取得失敗)"
+
+    # ランキングメッセージを作成
+    lines = ["🏆 今月のゴミ出しランキング 🗑"]
     for i, (user_id, count) in enumerate(results, start=1):
-        lines.append(f"{i}位: {user_id}（{count}回）")
+        name = display_names.get(user_id, user_id)
+        lines.append(f"{i}位: {name}（{count}回）")
 
     return "\n".join(lines)
