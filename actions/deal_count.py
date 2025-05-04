@@ -45,4 +45,5 @@ def action(event: MessageEvent, api_client: ApiClient, message: str): # api_clie
         )
         count = len(list(count))
 
+
         return f"{count}回目のゴミ捨てですね！" if count > 0 else "初めてのゴミ捨てですね！"
