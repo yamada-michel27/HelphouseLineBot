@@ -24,4 +24,3 @@ def action(event: MessageEvent, api_client: ApiClient, message: str):
         session.refresh(record)
 
         return f"{record.count}回目のゴミ捨てですね！"
-        

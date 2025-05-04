@@ -20,22 +20,22 @@ class GarbageLog(SQLModel, table=True):
         )
     )
 
-class SampleCount(SQLModel, table=True):
-    user_id: str = Field(primary_key=True)
-    count: int = Field(default=0)
-    garbage_type: Optional[str] = Field(default=None)
-    created_at: datetime = Field(
-        sa_column=Column(
-            DateTime(timezone=True),
-            server_default=func.now(),
-            nullable=False
-        )
-    )
-    updated_at: datetime = Field(
-        sa_column=Column(
-            DateTime(timezone=True),
-            server_default=func.now(),
-            onupdate=func.now(),         
-            nullable=False
-        )
-    )
+# class SampleCount(SQLModel, table=True):
+#     user_id: str = Field(primary_key=True)
+#     count: int = Field(default=0)
+#     garbage_type: Optional[str] = Field(default=None)
+#     created_at: datetime = Field(
+#         sa_column=Column(
+#             DateTime(timezone=True),
+#             server_default=func.now(),
+#             nullable=False
+#         )
+#     )
+#     updated_at: datetime = Field(
+#         sa_column=Column(
+#             DateTime(timezone=True),
+#             server_default=func.now(),
+#             onupdate=func.now(),
+#             nullable=False
+#         )
+#     )
