@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.12"
 
 [[package]]
@@ -441,6 +442,7 @@ dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "gunicorn" },
     { name = "line-bot-sdk" },
+    { name = "pypika" },
     { name = "python-dotenv" },
 ]
 
@@ -449,6 +451,7 @@ requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.12" },
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "line-bot-sdk", specifier = ">=3.17.1" },
+    { name = "pypika", specifier = ">=0.48.9" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
 ]
 
@@ -702,6 +705,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/7c/2d/c3338d48ea6cc0feb
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8a/0b/9fcc47d19c48b59121088dd6da2488a49d5f72dacf8262e2790a1d2c7d15/pygments-2.19.1-py3-none-any.whl", hash = "sha256:9ea1544ad55cecf4b8242fab6dd35a93bbce657034b0611ee383099054ab6d8c", size = 1225293 },
 ]
+
+[[package]]
+name = "pypika"
+version = "0.48.9"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c7/2c/94ed7b91db81d61d7096ac8f2d325ec562fc75e35f3baea8749c85b28784/PyPika-0.48.9.tar.gz", hash = "sha256:838836a61747e7c8380cd1b7ff638694b7a7335345d0f559b04b2cd832ad5378", size = 67259 }
 
 [[package]]
 name = "python-dateutil"
