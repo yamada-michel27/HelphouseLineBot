@@ -11,13 +11,13 @@ def match(event: MessageEvent, message: str) -> bool:
 
 
 def action(event: MessageEvent, api_client: ApiClient, message: str) -> str:
-    group_id = event.source.group_id
-    if not group_id:
-        return "このコマンドはグループ内でのみ使用できます。"
-
+    if not hasattr(event.source, "group_id") or not event.source.group_id:
+        return "このコマンドは個人チャットでは使用できません。"
+    
     # 今月の開始日を取得
     now = datetime.now(timezone.utc)
     first_day_of_month = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+    group_id = event.source.group_id
 
     with Session(engine) as session:
         # 今月のゴミ出しをグループ内で集計
