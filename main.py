@@ -14,17 +14,17 @@ from linebot.v3.messaging import (
 )
 from linebot.v3.webhooks import MessageEvent, JoinEvent, LeaveEvent, TextMessageContent
 from sqlmodel import Session
+
+# .env 読み込み
+load_dotenv()
+
 from app.models import Group
 from utils.db import engine
 
 import actions
-import cronjobs
 
 # ログ設定
 logger = logging.getLogger(__name__)
-
-# .env 読み込み
-load_dotenv()
 
 # FastAPI インスタンス生成
 app = FastAPI()
@@ -49,56 +49,6 @@ async def callback(request: Request):
     except InvalidSignatureError:
         raise HTTPException(status_code=400, detail="Invalid signature")
     return {"status": "ok"}
-
-join_message = """こんにちは！
-このボットは、毎月のゴミ出しのカウントを行います。
-ゴミ出しをしたら「ごみ」と送信してください。
-毎月の最終日に、その月のランキングをお知らせします。
-
-【コマンド】
-「ごみ」
-→ゴミ出しのカウントをします
-「@ranking」
-→現時点でのランキングをお知らせします"""
-
-@handler.add(JoinEvent)
-def handle_join(event: JoinEvent):
-    # グループに参加したときの処理
-    logger.info(f"Joined group: {event.source.group_id}")
-
-    # 参加したグループの情報をデータベースに保存
-    with Session(engine) as session:
-        record = session.get(Group, event.source.user_id)
-        if record is None:
-            record = Group(id=event.source.group_id)
-            session.add(record)
-        
-        session.commit()
-        session.refresh(record)
-        logger.info(f"新しいグループがデータベースに保存されました: {event.source.group_id}")
-
-    with ApiClient(configuration) as api_client:
-        line_api = MessagingApi(api_client)
-        line_api.reply_message_with_http_info(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text=join_message)]
-            )
-        )
-
-@handler.add(LeaveEvent)
-def handle_leave(event: LeaveEvent):
-    # グループから退出したときの処理
-    logger.info(f"Left group: {event.source.group_id}")
-
-    # 参加していたグループの情報をデータベースから削除
-    with Session(engine) as session:
-        record = session.get(Group, event.source.group_id)
-        if record is not None:
-            session.delete(record)
-            session.commit()
-            logger.info(f"グループがデータベースから削除されました: {event.source.group_id}")
-
 
 # メッセージイベントのハンドラ
 @handler.add(MessageEvent, message=TextMessageContent)
@@ -134,31 +84,6 @@ def handle_message(event: MessageEvent):
                             )
                         )
                 return
-
-
-# Cronジョブの実行
-@app.post("/cron")
-def cron(request: Request):
-    # CRON_TOKEN環境変数が設定されている場合は、Authorizationヘッダをチェック
-    if os.getenv("CRON_TOKEN"):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            raise HTTPException(status_code=401, detail="Unauthorized")
-        token = auth_header.removeprefix("Bearer ").strip()
-        if token != os.getenv("CRON_TOKEN"):
-            raise HTTPException(status_code=401, detail="Unauthorized")
-
-    # ./cronjobs ディレクトリにあるCronジョブをインポート
-    for _, module_name, _ in pkgutil.iter_modules(cronjobs.__path__):
-        module = importlib.import_module(f"cronjobs.{module_name}")
-        if hasattr(module, "run"):
-            try:
-                module.run()
-            except Exception as e:
-                logger.error(f"Error in cron job {module_name}: {e}")
-                return {"status": "error", "message": str(e)}
-    
-    return {"status": "ok"}
 
 if __name__ == "__main__":
     import uvicorn
