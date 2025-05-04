@@ -1,0 +1,6 @@
+{
+  "python.analysis.extraPaths": [
+    ".venv/Lib/site-packages" // Windows
+    // ".venv/lib/python3.x/site-packages" // macOS/Linux
+  ]
+}
