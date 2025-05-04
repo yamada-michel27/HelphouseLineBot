@@ -68,13 +68,12 @@ def handle_join(event: JoinEvent):
 
     # 参加したグループの情報をデータベースに保存
     with Session(engine) as session:
-        record = session.get(Group, event.source.user_id)
+        record = session.get(Group, event.source.group_id)
         if record is None:
             record = Group(id=event.source.group_id)
             session.add(record)
-        
-        session.commit()
-        session.refresh(record)
+            session.commit()
+            session.refresh(record)
         logger.info(f"新しいグループがデータベースに保存されました: {event.source.group_id}")
 
     with ApiClient(configuration) as api_client:
