@@ -9,4 +9,5 @@ dependencies = [
     "gunicorn>=23.0.0",
     "pypika>=0.48.9",
     "python-dotenv>=1.1.0",
+    "sqlmodel>=0.0.24",
 ]
