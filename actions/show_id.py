@@ -11,7 +11,7 @@ def action(event: MessageEvent, api_client: ApiClient, message: str):
     if hasattr(event.source, "group_id") and event.source.group_id:
         reply += "\nグループIDは" + event.source.group_id + "です！"
 
-    if hasattr(event.source, "group_id") and event.source.room_id:
+    if hasattr(event.source, "room_id") and event.source.room_id:
         reply += "\nルームIDは" + event.source.room_id + "です！"
 
     return reply
