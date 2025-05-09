@@ -50,16 +50,31 @@ async def callback(request: Request):
         raise HTTPException(status_code=400, detail="Invalid signature")
     return {"status": "ok"}
 
-join_message = """こんにちは！
+join_message = """
+初めまして！
 このボットは、毎月のゴミ出しのカウントを行います。
-ゴミ出しをしたら「ごみ」と送信してください。
+ゴミ出しをしたら「#tr」と送信してください。
 毎月の最終日に、その月のランキングをお知らせします。
 
 【コマンド】
-「ごみ」
+「#tr」
 →ゴミ出しのカウントをします
 「@ranking」
-→現時点でのランキングをお知らせします"""
+→現時点でのランキングをお知らせします
+
+----------------------------------
+Nice to meet you!
+This bot tracks how many times you take out the trash each month.
+Whenever you take out the trash, just send the message "gomi".
+At the end of each month, you'll receive a ranking based on your activity.
+
+[Commands]
+"#tr"
+→ Counts one trash disposal
+"@ranking"
+→ Shows the current ranking
+
+"""
 
 @handler.add(JoinEvent)
 def handle_join(event: JoinEvent):
@@ -84,19 +99,6 @@ def handle_join(event: JoinEvent):
                 messages=[TextMessage(text=join_message)]
             )
         )
-
-@handler.add(LeaveEvent)
-def handle_leave(event: LeaveEvent):
-    # グループから退出したときの処理
-    logger.info(f"Left group: {event.source.group_id}")
-
-    # 参加していたグループの情報をデータベースから削除
-    with Session(engine) as session:
-        record = session.get(Group, event.source.group_id)
-        if record is not None:
-            session.delete(record)
-            session.commit()
-            logger.info(f"グループがデータベースから削除されました: {event.source.group_id}")
 
 
 # メッセージイベントのハンドラ

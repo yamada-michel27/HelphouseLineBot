@@ -7,7 +7,7 @@ from app.models import User, GarbageLog, Group
 import uuid
 
 def match(event: MessageEvent, message: str) -> bool:
-    return message in ["ゴミ", "trash"]
+    return message in ["#tr"]
 
 def action(event: MessageEvent, api_client: ApiClient, message: str): # api_clientいる？
     user_id = event.source.user_id
