@@ -12,7 +12,7 @@ from linebot.v3.messaging import (
     Configuration, ApiClient, MessagingApi,
     ReplyMessageRequest, TextMessage
 )
-from linebot.v3.webhooks import MessageEvent, JoinEvent, LeaveEvent, TextMessageContent
+from linebot.v3.webhooks import MessageEvent, JoinEvent, TextMessageContent, MemberJoinedEvent
 from sqlmodel import Session
 from app.models import Group
 from utils.db import engine
@@ -104,7 +104,15 @@ def handle_join(event: JoinEvent):
 # メッセージイベントのハンドラ
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event: MessageEvent):
-    message = event.message.text.strip()
+    
+    with ApiClient(configuration) as api_client:
+        line_api = MessagingApi(api_client)
+        line_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.repy_token,
+                messages=[TextMessage(text=join_message)]
+            )
+        )
 
     # ./actions ディレクトリにあるアクションをインポート
     for _, module_name, _ in pkgutil.iter_modules(actions.__path__):
@@ -135,6 +143,17 @@ def handle_message(event: MessageEvent):
                             )
                         )
                 return
+
+@handler.add(MemberJoinedEvent)
+def handle_member_joined(event: MemberJoinedEvent):
+    with ApiClient(configuration) as api_client:
+        line_api = MessagingApi(api_client)
+        line_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=join_message)]
+            )
+        )
 
 
 # Cronジョブの実行
