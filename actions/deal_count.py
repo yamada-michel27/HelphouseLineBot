@@ -13,10 +13,10 @@ MESSAGE_TO_TASK_TYPE = {
     "#dish": TaskType.DISHWASHING,
 }
 
-def match(event: MessageEvent, api_client: ApiClient, message: str) -> bool:
+def match(event: MessageEvent, message: str) -> bool:
     return message.strip() in MESSAGE_TO_TASK_TYPE
 
-def action(event: MessageEvent, message: str): # api_clientいる？
+def action(event: MessageEvent, message: str):
     user_id = event.source.user_id
 
     # group_id が存在するか確認（グループトークのみ）
