@@ -5,12 +5,15 @@ from utils.db import engine
 from app.models import User, TaskLog, Group, TaskType
 import uuid
 
+# ApiClientのインポート（適切な場所に合わせて修正してください）
+from linebot.v3.messaging import ApiClient
+
 MESSAGE_TO_TASK_TYPE = {
     "#tr": TaskType.GARBAGE,
     "#dish": TaskType.DISHWASHING,
 }
 
-def match(event: MessageEvent, message: str) -> bool:
+def match(event: MessageEvent, api_client: ApiClient, message: str) -> bool:
     return message.strip() in MESSAGE_TO_TASK_TYPE
 
 def action(event: MessageEvent, message: str): # api_clientいる？
