@@ -131,18 +131,18 @@ def handle_join(event: JoinEvent):
             )
         )
 
-@handler.add(LeaveEvent)
-def handle_leave(event: LeaveEvent):
-    # グループから退出したときの処理
-    logger.info(f"Left group: {event.source.group_id}")
+# @handler.add(LeaveEvent)
+# def handle_leave(event: LeaveEvent):
+#     # グループから退出したときの処理
+#     logger.info(f"Left group: {event.source.group_id}")
 
-    # 参加していたグループの情報をデータベースから削除
-    with Session(engine) as session:
-        record = session.get(Group, event.source.group_id)
-        if record is not None:
-            session.delete(record)
-            session.commit()
-            logger.info(f"グループがデータベースから削除されました: {event.source.group_id}")
+#     # 参加していたグループの情報をデータベースから削除
+#     with Session(engine) as session:
+#         record = session.get(Group, event.source.group_id)
+#         if record is not None:
+#             session.delete(record)
+#             session.commit()
+#             logger.info(f"グループがデータベースから削除されました: {event.source.group_id}")
 
 
 # メッセージイベントのハンドラ
