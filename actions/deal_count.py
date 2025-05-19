@@ -16,7 +16,7 @@ MESSAGE_TO_TASK_TYPE = {
 def match(event: MessageEvent, message: str) -> bool:
     return message.strip() in MESSAGE_TO_TASK_TYPE
 
-def action(event: MessageEvent, message: str):
+def action(event: MessageEvent, api_client: ApiClient, message: str):
     user_id = event.source.user_id
 
     # group_id が存在するか確認（グループトークのみ）
