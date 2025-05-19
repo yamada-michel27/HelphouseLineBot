@@ -12,7 +12,7 @@ from linebot.v3.messaging import (
     Configuration, ApiClient, MessagingApi,
     ReplyMessageRequest, TextMessage
 )
-from linebot.v3.webhooks import MessageEvent, JoinEvent, LeaveEvent, TextMessageContent
+from linebot.v3.webhooks import MessageEvent, JoinEvent, LeaveEvent, TextMessageContent, MemberJoinedEvent
 from sqlmodel import Session
 from app.models import Group
 from utils.db import engine
@@ -50,18 +50,62 @@ async def callback(request: Request):
         raise HTTPException(status_code=400, detail="Invalid signature")
     return {"status": "ok"}
 
-join_message = """こんにちは！
+join_message = """
+こんにちは！
 このボットは、毎月のゴミ出しのカウントを行います。
-ゴミ出しをしたら「ごみ」と送信してください。
+ゴミ出しをしたら「#tr」と送信してください。
 毎月の最終日に、その月のランキングをお知らせします。
 
 【コマンド】
-「ごみ」
+「#tr」
 →ゴミ出しのカウントをします
 「@ranking」
 →現時点でのランキングをお知らせします
-あ
+-----------------
+Hello!
+This bot helps count how many times you've taken out the trash each month.
+When you take out the trash, just send #tr.
+At the end of each month, the bot will notify the group with the monthly ranking.
+
+[Commands]
+#tr
+→ Records a trash-taking action.
+
+@ranking
+→ Shows the current trash-taking ranking.
 """
+
+
+@handler.add(MemberJoinedEvent)
+def handle_member_joined(event: MemberJoinedEvent):
+    group_id = event.source.group_id
+    joined_user_ids = [member.user_id for member in event.joined.members]
+    
+    with ApiClient(configuration) as api_client:
+        line_api = MessagingApi(api_client)
+        messages = []
+        
+        for user_id in joined_user_ids:
+            try:
+                profile = line_api.get_group_member_profile(group_id, user_id)
+                display_name = profile.display_name
+            except Exception:
+                display_name = "新しい参加者"
+                
+            messages.append(
+                TextMessage(
+                    text=f"{display_name}さん、ようこそ！ \n{join_message}"
+                )
+            )
+            
+        if messages:
+            line_api.reply_message_with_http_info(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=messages
+            )
+        )
+
 
 @handler.add(JoinEvent)
 def handle_join(event: JoinEvent):
