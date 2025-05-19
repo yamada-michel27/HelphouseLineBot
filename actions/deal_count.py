@@ -10,7 +10,7 @@ from linebot.v3.messaging import ApiClient
 
 MESSAGE_TO_TASK_TYPE = {
     "#tr": TaskType.GARBAGE,
-    "#dish": TaskType.DISHWASHING,
+    # "#dish": TaskType.DISHWASHING,
 }
 
 def match(event: MessageEvent, message: str) -> bool:
