@@ -3,7 +3,7 @@ from linebot.v3.messaging import ApiClient, MessagingApi
 from linebot.v3.webhooks import MessageEvent
 from sqlmodel import Session, select, func
 from utils.db import engine
-from app.models import GarbageLog
+from app.models import TaskLog, TaskType
 
 
 def match(event: MessageEvent, message: str) -> bool:
@@ -22,12 +22,13 @@ def action(event: MessageEvent, api_client: ApiClient, message: str) -> str:
     with Session(engine) as session:
         # 今月のゴミ出しをグループ内で集計
         statement = (
-            select(GarbageLog.user_id, func.count().label("count"))
+            select(TaskLog.user_id, func.count().label("count"))
             .where(
-                GarbageLog.group_id == group_id,
-                GarbageLog.created_at >= first_day_of_month
+                TaskLog.group_id == group_id,
+                TaskLog.created_at >= first_day_of_month,
+                TaskLog.task_type == TaskType.GARBAGE
             )
-            .group_by(GarbageLog.user_id)
+            .group_by(TaskLog.user_id)
             .order_by(func.count().desc())
         )
 
