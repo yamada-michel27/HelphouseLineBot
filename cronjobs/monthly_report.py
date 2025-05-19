@@ -6,7 +6,7 @@ from linebot.v3.messaging import (
 )
 from linebot.v3.webhooks import MessageEvent
 from sqlmodel import Session, func, select
-from app.models import GarbageLog, Group
+from app.models import TaskLog, Group, TaskType
 from utils.db import engine
 from main import configuration
 
@@ -49,12 +49,13 @@ def build_ranking_text(api_client: ApiClient, group_id: str) -> str:
     with Session(engine) as session:
         # 今月のゴミ出しをグループ内で集計
         statement = (
-            select(GarbageLog.user_id, func.count().label("count"))
+            select(TaskLog.user_id, func.count().label("count"))
             .where(
-                GarbageLog.group_id == group_id,
-                GarbageLog.created_at >= first_day_of_month
+                TaskLog.group_id == group_id,
+                TaskLog.created_at >= first_day_of_month,
+                TaskLog.task_type == TaskType.GARBAGE
             )
-            .group_by(GarbageLog.user_id)
+            .group_by(TaskLog.user_id)
             .order_by(func.count().desc())
         )
 
