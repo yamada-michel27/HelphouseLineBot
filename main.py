@@ -114,7 +114,7 @@ def handle_message(event: MessageEvent):
                 with ApiClient(configuration) as api_client:
                     # 該当するアクションファイルのaction関数を実行
                     messages = []
-                    replies = module.action(event, api_client, message)
+                    replies = module.action(event, message)
 
                     if not isinstance(replies, list):
                         replies = [replies]
