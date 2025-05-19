@@ -59,7 +59,9 @@ join_message = """こんにちは！
 「ごみ」
 →ゴミ出しのカウントをします
 「@ranking」
-→現時点でのランキングをお知らせします"""
+→現時点でのランキングをお知らせします
+あ
+"""
 
 @handler.add(JoinEvent)
 def handle_join(event: JoinEvent):
