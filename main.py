@@ -138,14 +138,18 @@ def handle_message(event: MessageEvent):
 # Cronジョブの実行
 @app.post("/cron")
 def cron(request: Request):
-    # CRON_TOKEN環境変数が設定されている場合は、Authorizationヘッダをチェック
-    if os.getenv("CRON_TOKEN"):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            raise HTTPException(status_code=401, detail="Unauthorized")
-        token = auth_header.removeprefix("Bearer ").strip()
-        if token != os.getenv("CRON_TOKEN"):
-            raise HTTPException(status_code=401, detail="Unauthorized")
+    # CRON_TOKEN が必ず設定されていることを前提とする
+    excepted_token = os.getenv("CRON_TOKEN")
+    if not excepted_token:
+        raise RuntimeError("CRON_TOKEN is not set in environment variables.")
+
+    # Authorization ヘッダーのチェック
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    provided_token = auth_header.removeprefix("Bearer ").strip()
+    if provided_token != os.getenv("CRON_TOKEN"):
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
     # ./cronjobs ディレクトリにあるCronジョブをインポート
     for _, module_name, _ in pkgutil.iter_modules(cronjobs.__path__):
@@ -156,7 +160,7 @@ def cron(request: Request):
             except Exception as e:
                 logger.error(f"Error in cron job {module_name}: {e}")
                 return {"status": "error", "message": str(e)}
-    
+
     return {"status": "ok"}
 
 if __name__ == "__main__":
