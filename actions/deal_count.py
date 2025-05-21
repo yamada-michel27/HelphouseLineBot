@@ -8,6 +8,13 @@ import uuid
 # ApiClientのインポート（適切な場所に合わせて修正してください）
 from linebot.v3.messaging import ApiClient
 
+class Config_Message:
+    ADD_ME_MESSAGE = '''
+        ユーザーIDを特定できませんでした。私を友だち追加してください。
+        ----------------------------------------------------------
+        I couldn't identify your user ID.Please add me as a friend.
+    '''
+
 MESSAGE_TO_TASK_TYPE = {
     "#tr": TaskType.GARBAGE,
     # "#dish": TaskType.DISHWASHING,
@@ -18,6 +25,9 @@ def match(event: MessageEvent, message: str) -> bool:
 
 def action(event: MessageEvent, api_client: ApiClient, message: str):
     user_id = event.source.user_id
+
+    if not user_id:
+        return Config_Message.ADD_ME_MESSAGE
 
     # group_id が存在するか確認（グループトークのみ）
     if not (hasattr(event.source, "group_id") and event.source.group_id):
