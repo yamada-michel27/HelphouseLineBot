@@ -17,6 +17,8 @@ from sqlmodel import Session
 from app.models import Group
 from utils.db import engine
 
+from fastapi.responses import Response
+
 import actions
 import cronjobs
 
@@ -155,7 +157,6 @@ def handle_member_joined(event: MemberJoinedEvent):
             )
         )
 
-
 # Cronジョブの実行
 @app.post("/cron")
 def cron(request: Request):
@@ -179,6 +180,10 @@ def cron(request: Request):
                 return {"status": "error", "message": str(e)}
     
     return {"status": "ok"}
+
+@app.get("/healthz", include_in_schema=False)
+def health_check():
+    return Response(content="ok", media_type="text/plain")
 
 if __name__ == "__main__":
     import uvicorn
