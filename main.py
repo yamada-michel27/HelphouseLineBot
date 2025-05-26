@@ -136,6 +136,7 @@ def handle_join(event: JoinEvent):
 # メッセージイベントのハンドラ
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event: MessageEvent):
+    message = event.message
     
     with ApiClient(configuration) as api_client:
         line_api = MessagingApi(api_client)
