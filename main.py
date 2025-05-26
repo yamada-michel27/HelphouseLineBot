@@ -52,8 +52,7 @@ async def callback(request: Request):
         raise HTTPException(status_code=400, detail="Invalid signature")
     return {"status": "ok"}
 
-join_message = """
-初めまして！
+join_message = """こんにちは！
 このボットは、毎月のゴミ出しのカウントを行います。
 ゴミ出しをしたら「#tr」と送信してください。
 毎月の最終日に、その月のランキングをお知らせします。
@@ -63,20 +62,51 @@ join_message = """
 →ゴミ出しのカウントをします
 「@ranking」
 →現時点でのランキングをお知らせします
-
-----------------------------------
-Nice to meet you!
-This bot tracks how many times you take out the trash each month.
-Whenever you take out the trash, just send the message "gomi".
-At the end of each month, you'll receive a ranking based on your activity.
+-----------------
+Hello!
+This bot helps count how many times you've taken out the trash each month.
+When you take out the trash, just send #tr.
+At the end of each month, the bot will notify the group with the monthly ranking.
 
 [Commands]
-"#tr"
-→ Counts one trash disposal
-"@ranking"
-→ Shows the current ranking
+#tr
+→ Records a trash-taking action.
 
+@ranking
+→ Shows the current trash-taking ranking.
 """
+
+
+@handler.add(MemberJoinedEvent)
+def handle_member_joined(event: MemberJoinedEvent):
+    group_id = event.source.group_id
+    joined_user_ids = [member.user_id for member in event.joined.members]
+    
+    with ApiClient(configuration) as api_client:
+        line_api = MessagingApi(api_client)
+        messages = []
+        
+        for user_id in joined_user_ids:
+            try:
+                profile = line_api.get_group_member_profile(group_id, user_id)
+                display_name = profile.display_name
+            except Exception:
+                display_name = "新しい参加者"
+                
+            messages.append(
+                TextMessage(
+                    text=f"{display_name}さん、ようこそ！ \n{join_message}"
+                )
+            )
+            
+        if messages:
+            line_api.reply_message_with_http_info(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=messages
+            )
+        )
+
 
 @handler.add(JoinEvent)
 def handle_join(event: JoinEvent):
@@ -160,14 +190,18 @@ def handle_member_joined(event: MemberJoinedEvent):
 # Cronジョブの実行
 @app.post("/cron")
 def cron(request: Request):
-    # CRON_TOKEN環境変数が設定されている場合は、Authorizationヘッダをチェック
-    if os.getenv("CRON_TOKEN"):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            raise HTTPException(status_code=401, detail="Unauthorized")
-        token = auth_header.removeprefix("Bearer ").strip()
-        if token != os.getenv("CRON_TOKEN"):
-            raise HTTPException(status_code=401, detail="Unauthorized")
+    # CRON_TOKEN が必ず設定されていることを前提とする
+    excepted_token = os.getenv("CRON_TOKEN")
+    if not excepted_token:
+        raise RuntimeError("CRON_TOKEN is not set in environment variables.")
+
+    # Authorization ヘッダーのチェック
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    provided_token = auth_header.removeprefix("Bearer ").strip()
+    if provided_token != os.getenv("CRON_TOKEN"):
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
     # ./cronjobs ディレクトリにあるCronジョブをインポート
     for _, module_name, _ in pkgutil.iter_modules(cronjobs.__path__):
@@ -178,7 +212,7 @@ def cron(request: Request):
             except Exception as e:
                 logger.error(f"Error in cron job {module_name}: {e}")
                 return {"status": "error", "message": str(e)}
-    
+
     return {"status": "ok"}
 
 @app.get("/healthz", include_in_schema=False)
