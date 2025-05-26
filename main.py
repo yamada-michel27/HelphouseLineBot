@@ -12,10 +12,12 @@ from linebot.v3.messaging import (
     Configuration, ApiClient, MessagingApi,
     ReplyMessageRequest, TextMessage
 )
-from linebot.v3.webhooks import MessageEvent, JoinEvent, LeaveEvent, TextMessageContent, MemberJoinedEvent
+from linebot.v3.webhooks import MessageEvent, JoinEvent, TextMessageContent, MemberJoinedEvent
 from sqlmodel import Session
 from app.models import Group
 from utils.db import engine
+
+from fastapi.responses import Response
 
 import actions
 import cronjobs
@@ -50,8 +52,7 @@ async def callback(request: Request):
         raise HTTPException(status_code=400, detail="Invalid signature")
     return {"status": "ok"}
 
-join_message = """
-こんにちは！
+join_message = """こんにちは！
 このボットは、毎月のゴミ出しのカウントを行います。
 ゴミ出しをしたら「#tr」と送信してください。
 毎月の最終日に、その月のランキングをお知らせします。
@@ -131,24 +132,19 @@ def handle_join(event: JoinEvent):
             )
         )
 
-# @handler.add(LeaveEvent)
-# def handle_leave(event: LeaveEvent):
-#     # グループから退出したときの処理
-#     logger.info(f"Left group: {event.source.group_id}")
-
-#     # 参加していたグループの情報をデータベースから削除
-#     with Session(engine) as session:
-#         record = session.get(Group, event.source.group_id)
-#         if record is not None:
-#             session.delete(record)
-#             session.commit()
-#             logger.info(f"グループがデータベースから削除されました: {event.source.group_id}")
-
 
 # メッセージイベントのハンドラ
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event: MessageEvent):
-    message = event.message.text.strip()
+    
+    with ApiClient(configuration) as api_client:
+        line_api = MessagingApi(api_client)
+        line_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.repy_token,
+                messages=[TextMessage(text=join_message)]
+            )
+        )
 
     # ./actions ディレクトリにあるアクションをインポート
     for _, module_name, _ in pkgutil.iter_modules(actions.__path__):
@@ -180,6 +176,16 @@ def handle_message(event: MessageEvent):
                         )
                 return
 
+@handler.add(MemberJoinedEvent)
+def handle_member_joined(event: MemberJoinedEvent):
+    with ApiClient(configuration) as api_client:
+        line_api = MessagingApi(api_client)
+        line_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=join_message)]
+            )
+        )
 
 # Cronジョブの実行
 @app.post("/cron")
@@ -208,6 +214,10 @@ def cron(request: Request):
                 return {"status": "error", "message": str(e)}
 
     return {"status": "ok"}
+
+@app.get("/healthz", include_in_schema=False)
+def health_check():
+    return Response(content="ok", media_type="text/plain")
 
 if __name__ == "__main__":
     import uvicorn

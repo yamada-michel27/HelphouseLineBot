@@ -50,9 +50,18 @@ def action(event: MessageEvent, api_client: ApiClient, message: str) -> str:
             display_names[user_id] = "(名前取得失敗)"
 
     # ランキングメッセージを作成
-    lines = ["🏆 今月のゴミ出しランキング 🗑"]
+    lines = ["🏆 今月のゴミ出しランキング 🗑",
+             "(Garbage disposal ranking this month)"
+             ]
+    prev_count = None
+    display_rank = 1
+
     for i, (user_id, count) in enumerate(results, start=1):
         name = display_names.get(user_id, user_id)
-        lines.append(f"{i}位: {name}（{count}回）")
+
+        if count != prev_count:
+            display_rank = i
+            prev_count = count
+        lines.append(f"{display_rank}位: {name}（{count}回）")
 
     return "\n".join(lines)
