@@ -104,12 +104,13 @@ def handle_join(event: JoinEvent):
 # メッセージイベントのハンドラ
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event: MessageEvent):
+    message = event.message
     
     with ApiClient(configuration) as api_client:
         line_api = MessagingApi(api_client)
         line_api.reply_message_with_http_info(
             ReplyMessageRequest(
-                reply_token=event.repy_token,
+                reply_token=event.reply_token,
                 messages=[TextMessage(text=join_message)]
             )
         )
