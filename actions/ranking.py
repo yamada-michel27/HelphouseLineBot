@@ -5,6 +5,8 @@ from sqlmodel import Session, select, func
 from utils.db import engine
 from app.models import TaskLog, TaskType
 
+DEFAULT_NAME = "(名無しさん)"
+
 
 def match(event: MessageEvent, message: str) -> bool:
     return message.strip() == "@ranking"
@@ -42,12 +44,15 @@ def action(event: MessageEvent, api_client: ApiClient, message: str) -> str:
 
     # ユーザーIDから表示名を取得してマッピング
     display_names = {}
+    any_name_failed = False
+
     for user_id, _ in results:
         try:
             profile = messaging_api.get_group_member_profile(group_id, user_id)
             display_names[user_id] = profile.display_name
         except Exception:
-            display_names[user_id] = "(名前取得失敗)"
+            display_names[user_id] = DEFAULT_NAME
+            any_name_failed = True
 
     # ランキングメッセージを作成
     lines = ["🏆 今月のゴミ出しランキング 🗑",
@@ -63,5 +68,9 @@ def action(event: MessageEvent, api_client: ApiClient, message: str) -> str:
             display_rank = i
             prev_count = count
         lines.append(f"{display_rank}位: {name}（{count}回）")
+        
+        
+    if any_name_failed:
+        lines.append("\n※名前が表示されていない方は、LINE Botを友だち追加すると表示されます。")
 
     return "\n".join(lines)

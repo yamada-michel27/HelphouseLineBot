@@ -22,6 +22,8 @@ from fastapi.responses import Response
 import actions
 import cronjobs
 
+DEFAULT_NAME = "(名無しさん)"
+
 # ログ設定
 logger = logging.getLogger(__name__)
 
@@ -90,8 +92,9 @@ def handle_member_joined(event: MemberJoinedEvent):
             try:
                 profile = line_api.get_group_member_profile(group_id, user_id)
                 display_name = profile.display_name
-            except Exception:
-                display_name = "新しい参加者"
+            except Exception as e:
+                logger.warning(f"ユーザー{user_id}の表示名取得に失敗しました:{e}")
+                display_name = DEFAULT_NAME
                 
             messages.append(
                 TextMessage(
@@ -169,16 +172,6 @@ def handle_message(event: MessageEvent):
                         )
                 return
 
-@handler.add(MemberJoinedEvent)
-def handle_member_joined(event: MemberJoinedEvent):
-    with ApiClient(configuration) as api_client:
-        line_api = MessagingApi(api_client)
-        line_api.reply_message_with_http_info(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text=join_message)]
-            )
-        )
 
 # Cronジョブの実行
 @app.post("/cron")
