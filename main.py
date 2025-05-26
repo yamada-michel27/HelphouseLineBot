@@ -105,25 +105,17 @@ def handle_join(event: JoinEvent):
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event: MessageEvent):
     message = event.message
-    
-    with ApiClient(configuration) as api_client:
-        line_api = MessagingApi(api_client)
-        line_api.reply_message_with_http_info(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text=join_message)]
-            )
-        )
+    text = message.text
 
     # ./actions ディレクトリにあるアクションをインポート
     for _, module_name, _ in pkgutil.iter_modules(actions.__path__):
         module = importlib.import_module(f"actions.{module_name}")
         if hasattr(module, "match") and hasattr(module, "action"):
-            if module.match(event, message):
+            if module.match(event, text):
                 with ApiClient(configuration) as api_client:
                     # 該当するアクションファイルのaction関数を実行
                     messages = []
-                    replies = module.action(event, api_client, message)
+                    replies = module.action(event, api_client, text)
 
                     if not isinstance(replies, list):
                         replies = [replies]
